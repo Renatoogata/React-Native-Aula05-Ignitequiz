@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { FlatList, View } from 'react-native';
+import { FlatList, View, Button } from 'react-native';
 import { Trophy } from 'phosphor-react-native';
 import { useNavigation } from '@react-navigation/native';
+
+import Animated, { RotateInUpLeft, SlideOutLeft, ZoomOut } from 'react-native-reanimated';
 
 import { Level } from '../../components/Level';
 import { Header } from '../../components/Header';
@@ -13,6 +15,8 @@ import { QUIZZES } from '../../data/quizzes';
 export function Home() {
   const [quizzes, setQuizzes] = useState(QUIZZES);
   const [levels, setLevels] = useState([1, 2, 3]);
+
+  // const [show, setShow] = useState(true);
 
   const { navigate } = useNavigation();
 
@@ -41,6 +45,17 @@ export function Home() {
         onPress={() => navigate('history')}
       />
 
+      {/* {
+        show && (
+          <Animated.View
+            entering={RotateInUpLeft.duration(700).delay(300)} // exemplo de animação pronta
+            exiting={SlideOutLeft.duration(3000)}
+            style={{ width: 50, height: 50, backgroundColor: 'red' }}
+          />
+        )
+      }
+      <Button title='Teste' onPress={() => setShow(prevState => !prevState)} /> */}
+
       <View style={styles.levels}>
         <Level title="Fácil" type="EASY" onPress={() => handleLevelFilter(1)} isChecked={levels.includes(1)} />
         <Level title="Médio" type="MEDIUM" onPress={() => handleLevelFilter(2)} isChecked={levels.includes(2)} />
@@ -50,8 +65,9 @@ export function Home() {
       <FlatList
         data={quizzes}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <QuizCard
+            index={index}
             data={item}
             onPress={() => navigate('quiz', { id: item.id })}
           />

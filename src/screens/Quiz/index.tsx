@@ -75,6 +75,7 @@ export function Quiz() {
       setPoints(prevState => prevState + 1);
     } else { // se o usuário errar a pergunta cai no else
       shakeAnimation(); // chamando animação de shake
+      handleNextQuestion();
     }
 
     setAlternativeSelected(null);
