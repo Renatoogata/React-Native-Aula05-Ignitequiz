@@ -3,6 +3,8 @@ import { useNavigation } from '@react-navigation/native';
 import { View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { HouseLine } from 'phosphor-react-native';
 
+import Animated, { Layout, SlideInRight, SlideOutRight } from 'react-native-reanimated';
+
 import { Header } from '../../components/Header';
 import { HistoryCard, HistoryProps } from '../../components/HistoryCard';
 
@@ -65,12 +67,18 @@ export function History() {
       >
         {
           history.map((item) => (
-            <TouchableOpacity
+            <Animated.View
               key={item.id}
-              onPress={() => handleRemove(item.id)}
+              entering={SlideInRight}
+              exiting={SlideOutRight} // sai para direita
+              layout={Layout.springify()} // Quando tem uma alteração no layout ele chama o stringify() (se eu deletar um elemento na flat list o resto sobe)
             >
-              <HistoryCard data={item} />
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleRemove(item.id)}
+              >
+                <HistoryCard data={item} />
+              </TouchableOpacity>
+            </Animated.View>
           ))
         }
       </ScrollView>
