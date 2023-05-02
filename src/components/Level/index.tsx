@@ -8,6 +8,8 @@ import Animated, {
   interpolateColor
 } from 'react-native-reanimated'
 
+const PressableAnimated = Animated.createAnimatedComponent(Pressable); // criando um pressable que contpem animações
+
 import { THEME } from '../../styles/theme';
 import { styles } from './styles';
 
@@ -39,7 +41,7 @@ export function Level({ title, type = 'EASY', isChecked = false, ...rest }: Prop
       )
     }
   })
-
+  // A gente só pode usar um componente animado em um componente que aceite o componente animado nesse acaso Animated.View
   const animatedTextStyle = useAnimatedStyle(() => {
     return {
       color: interpolateColor(
@@ -63,28 +65,15 @@ export function Level({ title, type = 'EASY', isChecked = false, ...rest }: Prop
   }, [isChecked])
 
   return (
-    <Pressable
+    <PressableAnimated // usando um componente animado criado na linha 11
       onPressIn={onPressIn}
       onPressOut={onPressOut}
+      style={[styles.container, { borderColor: COLOR }, animatedContainerStyle]}
       {...rest}
     >
-      <Animated.View style={ // A gente só pode usar um componente animado em um componente que aceite o componente animado nesse acaso Animated.View
-        // Se eu utilizasse uma View normal do react native ela não ia aceitar as props de animção que eu fiz
-        [
-          styles.container,
-          { borderColor: COLOR },
-          animatedContainerStyle, // utilizando o animatedStyle
-        ]
-      }>
-        <Animated.Text style={
-          [
-            styles.title,
-            animatedTextStyle,
-          ]}
-        >
-          {title}
-        </Animated.Text>
-      </Animated.View>
-    </Pressable>
+      <Animated.Text style={[styles.title, animatedTextStyle]}>
+        {title}
+      </Animated.Text>
+    </PressableAnimated>
   );
 }
