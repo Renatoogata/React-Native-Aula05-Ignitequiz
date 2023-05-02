@@ -1,5 +1,10 @@
-import { TouchableOpacity, TouchableOpacityProps, Text, View } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated'
+import { Pressable, PressableProps, Text } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing
+} from 'react-native-reanimated'
 
 import { THEME } from '../../styles/theme';
 import { styles } from './styles';
@@ -10,7 +15,7 @@ const TYPE_COLORS = {
   MEDIUM: THEME.COLORS.WARNING_LIGHT,
 }
 
-type Props = TouchableOpacityProps & {
+type Props = PressableProps & {
   title: string;
   isChecked?: boolean;
   type?: keyof typeof TYPE_COLORS;
@@ -27,8 +32,20 @@ export function Level({ title, type = 'EASY', isChecked = false, ...rest }: Prop
     }
   })
 
+  function onPressIn() { // quando o usuário pressionar
+    scale.value = withTiming(1.1, { easing: Easing.bounce, duration: 300 }); // mudando a escala withTiming(modificador)
+  }
+
+  function onPressOut() { // quando o usuário soltar
+    scale.value = withTiming(1, { easing: Easing.bounce, duration: 300 }); // mudando a escala withTiming(modificador)
+  }
+
   return (
-    <TouchableOpacity {...rest}>
+    <Pressable
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      {...rest}
+    >
       <Animated.View style={ // A gente só pode usar um componente animado em um componente que aceite o componente animado nesse acaso Animated.View
         // Se eu utilizasse uma View normal do react native ela não ia aceitar as props de animção que eu fiz
         [
@@ -45,6 +62,6 @@ export function Level({ title, type = 'EASY', isChecked = false, ...rest }: Prop
           {title}
         </Text>
       </Animated.View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
