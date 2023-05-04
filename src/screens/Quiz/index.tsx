@@ -98,7 +98,6 @@ export function Quiz() {
     } else { // se o usuário errar a pergunta cai no else
       setStatusReply(2);
       shakeAnimation(); // chamando animação de shake
-      handleNextQuestion();
     }
 
     setAlternativeSelected(null);
@@ -123,7 +122,12 @@ export function Quiz() {
   function shakeAnimation() { // criando animação para tremer a tela
     shake.value = withSequence( // sequencia de valores
       withTiming(3, { duration: 400, easing: Easing.bounce }),
-      withTiming(0)
+      withTiming(0, undefined, (finished) => { // função de callback para quando o withSequence terminar
+        'worklet'; // para chamar uma função javascript no reanimated temos que chamar o worklet e o runOnJS
+        if (finished) {
+          runOnJS(handleNextQuestion)();
+        }
+      })
     );
   }
 
@@ -262,6 +266,7 @@ export function Quiz() {
               question={quiz.questions[currentQuestion]}
               alternativeSelected={alternativeSelected}
               setAlternativeSelected={setAlternativeSelected}
+              onUnmount={() => setStatusReply(0)}
             />
           </Animated.View>
         </GestureDetector>
