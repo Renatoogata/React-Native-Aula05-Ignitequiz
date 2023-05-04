@@ -49,6 +49,11 @@ export function Option({ checked, title, ...rest }: Props) {
         percentage, // variável que quer modificar
         0, // valor que vai ser atribuído
         { duration: 700 }); // modificadores
+
+      runTiming( // bolinha no meio
+        circle,
+        0,
+        { easing: Easing.bounce, duration: 1500 });
     }
   }, [checked])
 
