@@ -175,6 +175,7 @@ export function Quiz() {
 
   const onPan = Gesture // salva os movimentos que o usuario faz na tela (pinça, segurar o dedo na tela, movimentos na horizontal e vertical)
     .Pan() // movimentos horizontais e verticais
+    .activateAfterLongPress(200) // ativar o gesto depois de 200msegundos
     .onUpdate((event) => {
       const moveLeft = event.translationX < 0;
       if (moveLeft) {
@@ -242,7 +243,7 @@ export function Quiz() {
           />
         </Animated.View>
 
-        <GestureDetector // passar de pergunta quando arrastar o card para esquerda
+        <GestureDetector // passar de pergunta quando arrastar o card para esquerda  
           gesture={onPan}
         >
           <Animated.View // componente animado (tremer o card quando a resposta for errada)
