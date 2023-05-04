@@ -28,6 +28,7 @@ import { QuizHeader } from '../../components/QuizHeader';
 import { ConfirmButton } from '../../components/ConfirmButton';
 import { OutlineButton } from '../../components/OutlineButton';
 import { ProgressBar } from '../../components/ProgressBar';
+import { OverlayFeedaback } from '../../components/OverlayFeedback';
 
 interface Params {
   id: string;
@@ -44,6 +45,8 @@ export function Quiz() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [quiz, setQuiz] = useState<QuizProps>({} as QuizProps);
   const [alternativeSelected, setAlternativeSelected] = useState<null | number>(null);
+
+  const [statusReply, setStatusReply] = useState(0);
 
   const shake = useSharedValue(0); // criando o useSharedValue
   const scrollY = useSharedValue(0); // criando o useSharedValue
@@ -90,8 +93,10 @@ export function Quiz() {
     }
 
     if (quiz.questions[currentQuestion].correct === alternativeSelected) {
+      setStatusReply(1);
       setPoints(prevState => prevState + 1);
     } else { // se o usuário errar a pergunta cai no else
+      setStatusReply(2);
       shakeAnimation(); // chamando animação de shake
       handleNextQuestion();
     }
@@ -218,6 +223,9 @@ export function Quiz() {
 
   return (
     <View style={styles.container}>
+      <OverlayFeedaback
+        status={statusReply}
+      />
       <Animated.View style={fixedProgressBarStyles}>
         <Text style={styles.title}>
           {quiz.title}
