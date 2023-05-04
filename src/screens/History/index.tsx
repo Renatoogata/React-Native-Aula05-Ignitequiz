@@ -88,16 +88,18 @@ export function History() {
                 }}
                 overshootLeft={false} // trava no limite do botão
                 containerStyle={styles.swipeableRemoveContainer} // estilização do container do swipeable
+                leftThreshold={10} // o tanto que tem que arrastar para executar a função
+                onSwipeableOpen={() => handleRemove(item.id, index)} // quando o usuário arrastar para esquerda e soltar, ja vai executar a função sozinho
+                renderRightActions={() => null} // prevenir para que no IOS não deslize para direita
                 renderLeftActions={() => (
-                  <Pressable
+                  <View
                     style={styles.swipeableRemove}
-                    onPress={() => handleRemove(item.id, index)}
                   >
                     <Trash
                       size={32}
                       color={THEME.COLORS.GREY_100}
                     />
-                  </Pressable>
+                  </View>
                 )}
               >
                 <HistoryCard data={item} />
