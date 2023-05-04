@@ -1,11 +1,23 @@
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, Text, View } from 'react-native';
 
-import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming, interpolate, Easing, useAnimatedScrollHandler, Extrapolate } from 'react-native-reanimated';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming,
+  interpolate,
+  Easing,
+  useAnimatedScrollHandler,
+  Extrapolate,
+  runOnJS
+} from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 import { styles } from './styles';
+import { THEME } from '../../styles/theme';
 
 import { QUIZ } from '../../data/quiz';
 import { historyAdd } from '../../storage/quizHistoryStorage';
@@ -16,13 +28,15 @@ import { QuizHeader } from '../../components/QuizHeader';
 import { ConfirmButton } from '../../components/ConfirmButton';
 import { OutlineButton } from '../../components/OutlineButton';
 import { ProgressBar } from '../../components/ProgressBar';
-import { THEME } from '../../styles/theme';
 
 interface Params {
   id: string;
 }
 
 type QuizProps = typeof QUIZ[0];
+
+const CARD_INCLINATION = 10;
+const CARD_SKIP_AREA = (-200);
 
 export function Quiz() {
   const [points, setPoints] = useState(0);
@@ -33,6 +47,7 @@ export function Quiz() {
 
   const shake = useSharedValue(0); // criando o useSharedValue
   const scrollY = useSharedValue(0); // criando o useSharedValue
+  const cardPosition = useSharedValue(0);
 
   const { navigate } = useNavigation();
 
@@ -158,6 +173,32 @@ export function Quiz() {
     }
   })
 
+  const onPan = Gesture // salva os movimentos que o usuario faz na tela (pinça, segurar o dedo na tela, movimentos na horizontal e vertical)
+    .Pan() // movimentos horizontais e verticais
+    .onUpdate((event) => {
+      const moveLeft = event.translationX < 0;
+      if (moveLeft) {
+        cardPosition.value = event.translationX;
+      }
+    })
+    .onEnd((event) => {
+      if (event.translationX < CARD_SKIP_AREA) {
+        runOnJS(handleSkipConfirm)(); // chamando uma função javacript dentro de uma animação
+      }
+      cardPosition.value = withTiming(0) // voltar para 0 de forma fluída
+    });
+
+  const dragStyles = useAnimatedStyle(() => { // utilizando no header (fazendo ele esconder quando o usuario arrasta para baixo)
+    const rotateZ = cardPosition.value / CARD_INCLINATION; // fazendo o card girar
+
+    return {
+      transform: [
+        { translateX: cardPosition.value }, // movendo o card na horizontal
+        { rotateZ: `${rotateZ}deg` } // fazendo o cardd girar
+      ]
+    }
+  })
+
   useEffect(() => {
     const quizSelected = QUIZ.filter(item => item.id === id)[0];
     setQuiz(quizSelected);
@@ -200,16 +241,21 @@ export function Quiz() {
             totalOfQuestions={quiz.questions.length}
           />
         </Animated.View>
-        <Animated.View // componente animado
-          style={shakeStyleAnimated}
+
+        <GestureDetector // passar de pergunta quando arrastar o card para esquerda
+          gesture={onPan}
         >
-          <Question
-            key={quiz.questions[currentQuestion].title}
-            question={quiz.questions[currentQuestion]}
-            alternativeSelected={alternativeSelected}
-            setAlternativeSelected={setAlternativeSelected}
-          />
-        </Animated.View>
+          <Animated.View // componente animado (tremer o card quando a resposta for errada)
+            style={[shakeStyleAnimated, dragStyles]}
+          >
+            <Question
+              key={quiz.questions[currentQuestion].title}
+              question={quiz.questions[currentQuestion]}
+              alternativeSelected={alternativeSelected}
+              setAlternativeSelected={setAlternativeSelected}
+            />
+          </Animated.View>
+        </GestureDetector>
 
         <View style={styles.footer}>
           <OutlineButton title="Parar" onPress={handleStop} />
