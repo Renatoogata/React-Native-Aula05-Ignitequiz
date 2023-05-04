@@ -8,6 +8,7 @@ export const styles = StyleSheet.create({
     backgroundColor: THEME.COLORS.GREY_800,
   },
   history: {
+    flexGrow: 1,
     padding: 32,
   },
   swipeableRemoveContainer: { // deixar o container inteiro vermelho para o botão vermelho parecer infinito

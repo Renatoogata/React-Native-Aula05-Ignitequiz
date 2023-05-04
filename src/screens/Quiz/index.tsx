@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, View } from 'react-native';
+import { Alert, ScrollView, Text, View } from 'react-native';
 
-import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming, interpolate, Easing } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming, interpolate, Easing, useAnimatedScrollHandler, Extrapolate } from 'react-native-reanimated';
 
 import { useNavigation, useRoute } from '@react-navigation/native';
 
@@ -15,6 +15,8 @@ import { Question } from '../../components/Question';
 import { QuizHeader } from '../../components/QuizHeader';
 import { ConfirmButton } from '../../components/ConfirmButton';
 import { OutlineButton } from '../../components/OutlineButton';
+import { ProgressBar } from '../../components/ProgressBar';
+import { THEME } from '../../styles/theme';
 
 interface Params {
   id: string;
@@ -30,6 +32,7 @@ export function Quiz() {
   const [alternativeSelected, setAlternativeSelected] = useState<null | number>(null);
 
   const shake = useSharedValue(0); // criando o useSharedValue
+  const scrollY = useSharedValue(0); // criando o useSharedValue
 
   const { navigate } = useNavigation();
 
@@ -116,6 +119,45 @@ export function Quiz() {
     }
   })
 
+  const scrollHandler = useAnimatedScrollHandler({ // lidar com a scrollview
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y // pegando o valor do scroll Y (Vertical)
+    }
+  })
+
+  const headerStyles = useAnimatedStyle(() => { // utilizando no header (fazendo ele esconder quando o usuario arrasta para baixo)
+    return {
+      opacity: interpolate(scrollY.value, [60, 90], [1, 0], Extrapolate.CLAMP)
+    }
+  })
+
+  const fixedProgressBarStyles = useAnimatedStyle(() => { // estilização da barra de animação fixa(quando o usuario rolar a tela para baixo e a animação das perguntas sumir)
+    return {
+      position: 'absolute',
+      zIndex: 1,
+      paddingTop: 50,
+      backgroundColor: THEME.COLORS.GREY_500,
+      width: '110%',
+      left: '-5%',
+      opacity: interpolate(
+        scrollY.value,
+        [50, 90], // quando o valor de scrollY for 50 e 90 
+        [0, 1],  // deixar a opacidade 0 quando o scrollY for 50, e 1 quando o scrollY for 90
+        Extrapolate.CLAMP, // garantir que a animação seja trabalha no intervalo definido(50, 90)
+      ),
+      transform: [ // fazer um efeito de deslizar na tela
+        {
+          translateY: interpolate(
+            scrollY.value,
+            [50, 100], // colocando 10 a mais para ele sair da tela
+            [-40, 0],
+            Extrapolate.CLAMP
+          )
+        }
+      ]
+    }
+  })
+
   useEffect(() => {
     const quizSelected = QUIZ.filter(item => item.id === id)[0];
     setQuiz(quizSelected);
@@ -134,16 +176,30 @@ export function Quiz() {
 
   return (
     <View style={styles.container}>
-      <ScrollView
+      <Animated.View style={fixedProgressBarStyles}>
+        <Text style={styles.title}>
+          {quiz.title}
+        </Text>
+
+        <ProgressBar
+          total={quiz.questions.length}
+          current={currentQuestion + 1}
+        />
+      </Animated.View>
+
+      <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.question}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16} // deixar a rolagem no IOS mais suave
       >
-        <QuizHeader
-          title={quiz.title}
-          currentQuestion={currentQuestion + 1}
-          totalOfQuestions={quiz.questions.length}
-        />
-
+        <Animated.View style={[styles.header, headerStyles]}>
+          <QuizHeader
+            title={quiz.title}
+            currentQuestion={currentQuestion + 1}
+            totalOfQuestions={quiz.questions.length}
+          />
+        </Animated.View>
         <Animated.View // componente animado
           style={shakeStyleAnimated}
         >
@@ -159,7 +215,7 @@ export function Quiz() {
           <OutlineButton title="Parar" onPress={handleStop} />
           <ConfirmButton onPress={handleConfirm} />
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
     </View >
   );
 }
